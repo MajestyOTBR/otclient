@@ -180,7 +180,7 @@ Size FrameBuffer::getSize()
 
 bool FrameBuffer::canUpdate()
 {
-    return ((m_forceUpdate || m_minTimeUpdate > 0) && (m_lastRenderedTime.ticksElapsed() >= m_minTimeUpdate));
+    return m_forceUpdate || (m_minTimeUpdate > 0 && (m_lastRenderedTime.ticksElapsed() >= m_minTimeUpdate));
 }
 
 void FrameBuffer::update()
