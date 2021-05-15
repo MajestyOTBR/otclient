@@ -39,7 +39,7 @@ int main(int argc, const char* argv[])
     g_client.init(args);
 
     // find script init.lua and run it
-    if (!g_resources.discoverWorkDir("init.lua"))
+    if(!g_resources.discoverWorkDir("init.lua"))
         g_logger.fatal("Unable to find work directory, cannot find init.lua, the application cannot be initialized.");
 
     if(!g_lua.safeRunScript("init.lua"))

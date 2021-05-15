@@ -686,16 +686,16 @@ void ProtocolGame::sendChangeOutfit(const Outfit& outfit)
     msg->addU8(outfit.getAddons());
 
     // TODO: Need to refactor
-    if (outfitType == 0) {
+    if(outfitType == 0) {
         msg->addU16(outfit.getMount());
         msg->addU8(outfit.getHead());
         msg->addU8(outfit.getBody());
         msg->addU8(outfit.getLegs());
         msg->addU8(outfit.getFeet());
         msg->addU16(0); // lookFamiliarsType
-    } else if (outfitType == 1) {
+    } else if(outfitType == 1) {
         msg->addU32(0);
-    } else if (outfitType == 2) {
+    } else if(outfitType == 2) {
         addPosition(msg, Position());
         msg->addU32(0); // spriteId
         msg->addU8(0); // stackPos

@@ -94,7 +94,7 @@ protected:
     void processInventoryChange(int slot, const ItemPtr& item);
     void processAttackCancel(uint seq);
     void processWalkCancel(Otc::Direction direction);
-    
+
     void processPlayerModes(Otc::FightModes fightMode, Otc::ChaseModes chaseMode, bool safeMode, Otc::PVPModes pvpMode);
 
     // message related

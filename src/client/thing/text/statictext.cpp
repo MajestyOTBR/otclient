@@ -27,7 +27,6 @@
 #include <framework/graphics/fontmanager.h>
 #include <framework/graphics/graphics.h>
 
-
 StaticText::StaticText()
 {
     m_mode = Otc::MESSAGE_NONE;

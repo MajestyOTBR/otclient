@@ -1659,14 +1659,15 @@ void ProtocolGame::parseRuleViolationLock(const InputMessagePtr& /*msg*/)
     g_game.processRuleViolationLock();
 }
 
-void ProtocolGame::parseTextMessage(const InputMessagePtr & msg)
+void ProtocolGame::parseTextMessage(const InputMessagePtr& msg)
 {
-    const auto type = static_cast < Otc::MessageMode > (msg->getU8());
+    const auto type = static_cast <Otc::MessageMode> (msg->getU8());
 
-    switch (type) {
+    switch(type) {
     case Otc::MESSAGE_DAMAGE_DEALT:
     case Otc::MESSAGE_DAMAGE_RECEIVED:
-    case Otc::MESSAGE_DAMAGE_OTHERS: {
+    case Otc::MESSAGE_DAMAGE_OTHERS:
+    {
         const Position pos = getPosition(msg);
         uint value[2];
         int color[2];
@@ -1679,8 +1680,8 @@ void ProtocolGame::parseTextMessage(const InputMessagePtr & msg)
         value[1] = msg->getU32();
         color[1] = msg->getU8();
 
-        for (uint_fast8_t i = 0; i < 2; ++i) {
-            if (value[i] == 0)
+        for(uint_fast8_t i = 0; i < 2; ++i) {
+            if(value[i] == 0)
                 continue;
             auto animatedText = AnimatedTextPtr(new AnimatedText);
             animatedText->setColor(color[i]);
@@ -1693,7 +1694,8 @@ void ProtocolGame::parseTextMessage(const InputMessagePtr & msg)
     case Otc::MESSAGE_HEALED:
     case Otc::MESSAGE_HEALED_OTHERS:
     case Otc::MESSAGE_EXPERIENCE:
-    case Otc::MESSAGE_EXPERIENCE_OTHERS: {
+    case Otc::MESSAGE_EXPERIENCE_OTHERS:
+    {
         const Position pos = getPosition(msg);
         const uint value = msg->getU32();
         const int color = msg->getU8();
@@ -2218,54 +2220,54 @@ ThingPtr ProtocolGame::getMappedThing(const InputMessagePtr& msg)
 
 CreaturePtr ProtocolGame::getCreature(const InputMessagePtr& msg, uint16 type)
 {
-    if (type == 0)
+    if(type == 0)
         type = msg->getU16();
 
     CreaturePtr creature;
     const bool known = (type != Proto::UnknownCreature);
-    if (type == Proto::OutdatedCreature || type == Proto::UnknownCreature) {
-        if (known) {
+    if(type == Proto::OutdatedCreature || type == Proto::UnknownCreature) {
+        if(known) {
             creature = g_map.getCreatureById(msg->getU32());
-            if (!creature)
+            if(!creature)
                 g_logger.traceError("server said that a creature is known, but it's not");
         } else {
             const uint32 removeId = msg->getU32(),
-                         id = msg->getU32();
+                id = msg->getU32();
 
-            if (id == removeId) {
+            if(id == removeId) {
                 creature = g_map.getCreatureById(id);
             } else {
                 g_map.removeCreatureById(removeId);
             }
 
             const uint8 creatureType = msg->getU8();
-            if (creatureType == Proto::CREATURETYPE_SUMMONPLAYER) {
+            if(creatureType == Proto::CREATURETYPE_SUMMONPLAYER) {
                 // TODO: Implement player summon creature type specific features
                 msg->getU32(); // master id
             }
 
             const std::string name = g_game.formatCreatureName(msg->getString());
 
-            if (creature) {
+            if(creature) {
                 creature->setName(name);
             } else {
-                if (id == m_localPlayer->getId()) {
+                if(id == m_localPlayer->getId()) {
                     creature = m_localPlayer;
-                } else if (creatureType == Proto::CREATURETYPE_PLAYER) {
+                } else if(creatureType == Proto::CREATURETYPE_PLAYER) {
                     // fixes a bug server side bug where GameInit is not sent and local player id is unknown
-                    if (m_localPlayer->getId() == 0 && name == m_localPlayer->getName())
+                    if(m_localPlayer->getId() == 0 && name == m_localPlayer->getName())
                         creature = m_localPlayer;
                     else
                         creature = PlayerPtr(new Player);
-                } else if (creatureType == Proto::CREATURETYPE_MONSTER || creatureType == Proto::CREATURETYPE_SUMMONPLAYER) {
+                } else if(creatureType == Proto::CREATURETYPE_MONSTER || creatureType == Proto::CREATURETYPE_SUMMONPLAYER) {
                     creature = MonsterPtr(new Monster);
-                } else if (creatureType == Proto::CREATURETYPE_NPC) {
+                } else if(creatureType == Proto::CREATURETYPE_NPC) {
                     creature = NpcPtr(new Npc);
                 } else {
                     g_logger.traceError("creature type is invalid");
                 }
 
-                if (creature) {
+                if(creature) {
                     creature->setId(id);
                     creature->setName(name);
 
@@ -2278,7 +2280,7 @@ CreaturePtr ProtocolGame::getCreature(const InputMessagePtr& msg, uint16 type)
         const auto direction = static_cast<Otc::Direction>(msg->getU8());
 
         const Outfit& outfit = getOutfit(msg);
-        if (outfit.hasMount()) {
+        if(outfit.hasMount()) {
             msg->getU8(); // lookMountHead
             msg->getU8(); // lookMountBody
             msg->getU8(); // lookMountLegs
@@ -2291,7 +2293,7 @@ CreaturePtr ProtocolGame::getCreature(const InputMessagePtr& msg, uint16 type)
 
         const uint16 speed = msg->getU16();
         const bool iconType = msg->getU8();
-        if (iconType) {
+        if(iconType) {
             msg->getU8();
             msg->getU8();
             msg->getU16();
@@ -2302,9 +2304,9 @@ CreaturePtr ProtocolGame::getCreature(const InputMessagePtr& msg, uint16 type)
             emblem = !known ? msg->getU8() : -1, // emblem is sent only when the creature is not known
             creatureType = msg->getU8();
 
-        if (creatureType == Proto::CREATURETYPE_SUMMONPLAYER) {
+        if(creatureType == Proto::CREATURETYPE_SUMMONPLAYER) {
             msg->getU32(); // master id
-        } else if (creatureType == Proto::CREATURETYPE_PLAYER) {
+        } else if(creatureType == Proto::CREATURETYPE_PLAYER) {
             msg->getU8(); // vocation id
         }
 
@@ -2313,8 +2315,8 @@ CreaturePtr ProtocolGame::getCreature(const InputMessagePtr& msg, uint16 type)
         msg->getU8(); // inspection type
         const bool unpass = msg->getU8();
 
-        if (creature) {
-            if (mark == 0xff) {
+        if(creature) {
+            if(mark == 0xff) {
                 creature->hideStaticSquare();
             } else {
                 creature->showStaticSquare(Color::from8bit(mark));
@@ -2329,28 +2331,28 @@ CreaturePtr ProtocolGame::getCreature(const InputMessagePtr& msg, uint16 type)
             creature->setPassable(!unpass);
             creature->setLight(light);
 
-            if (emblem != -1) {
+            if(emblem != -1) {
                 creature->setEmblem(emblem);
             }
 
-            if (creatureType != -1) {
+            if(creatureType != -1) {
                 creature->setType(creatureType);
             }
 
-            if (creature == m_localPlayer && !m_localPlayer->isKnown()) {
+            if(creature == m_localPlayer && !m_localPlayer->isKnown()) {
                 m_localPlayer->setKnown(true);
             }
         }
-    } else if (type == Proto::Creature) {
+    } else if(type == Proto::Creature) {
         creature = g_map.getCreatureById(msg->getU32());
 
-        if (!creature) {
+        if(!creature) {
             g_logger.traceError("invalid creature");
         }
 
         const auto direction = static_cast<Otc::Direction>(msg->getU8());
         const bool unpass = msg->getU8();
-        if (creature) {
+        if(creature) {
             creature->turn(direction);
             creature->setPassable(!unpass);
         }
@@ -2383,7 +2385,7 @@ ItemPtr ProtocolGame::getItem(const InputMessagePtr& msg, uint16 id)
     }
 
     // Impl Podium
-    // Todo: Temporary correction, the client dat does not contain information saying if the item is podium 
+    // Todo: Temporary correction, the client dat does not contain information saying if the item is podium
     if(id == 35973 || id == 35974) {
         const uint16 lookType = msg->getU16();
         if(lookType != 0) {
