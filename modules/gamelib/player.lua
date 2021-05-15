@@ -136,7 +136,7 @@ function Player:hasIcon(icon, icons)
     local pow = math.pow(2, i-1)
     if pow > icons then break end
 
-    local icons = bit32.band(icons, pow)
+    local icons = bit.band(icons, pow)
     if icons == icon then
       return true
     end
