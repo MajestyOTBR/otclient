@@ -34,16 +34,6 @@ void TilePainter::drawStart(const TilePtr& tile, const MapViewPtr& /*mapView*/)
     if(tile->m_completelyCovered) return;
 
     tile->m_drawElevation = 0;
-
-    if(tile->m_highlight.update) {
-        tile->m_highlight.fadeLevel += 10 * (tile->m_highlight.invertedColorSelection ? 1 : -1);
-        tile->m_highlight.update = false;
-        tile->m_highlight.rgbColor = Color(255, 255, 0, tile->m_highlight.fadeLevel);
-
-        if(tile->m_highlight.invertedColorSelection ? tile->m_highlight.fadeLevel > HIGHTLIGHT_FADE_END : tile->m_highlight.fadeLevel < HIGHTLIGHT_FADE_START) {
-            tile->m_highlight.invertedColorSelection = !tile->m_highlight.invertedColorSelection;
-        }
-    }
 }
 
 void TilePainter::drawEnd(const TilePtr& tile, const MapViewPtr& /*mapView*/)

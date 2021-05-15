@@ -34,12 +34,7 @@
 
 const static Color STATIC_SHADOWING_COLOR(static_cast<uint8>(215), static_cast<uint8>(1), 0.65f);
 
-Tile::Tile(const Position& position) :
-    m_position(position),
-    m_drawElevation(0),
-    m_minimapColor(0),
-    m_flags(0),
-    m_houseId(0)
+Tile::Tile(const Position& position) : m_position(position)
 {
     m_positionsAround = position.getPositionsAround();
 }
@@ -68,22 +63,17 @@ bool Tile::isCompletelyCovered(int8 firstFloor)
     return m_completelyCovered;
 }
 
-void Tile::clean()
-{
-    m_things.clear();
-}
-
 void Tile::addWalkingCreature(const CreaturePtr& creature)
 {
     m_walkingCreatures.push_back(creature);
-    analyzeThing(creature, true);
+    updateFlag(creature, true);
 }
 
 void Tile::removeWalkingCreature(const CreaturePtr& creature)
 {
     const auto it = std::find(m_walkingCreatures.begin(), m_walkingCreatures.end(), creature);
     if(it != m_walkingCreatures.end()) {
-        analyzeThing(creature, false);
+        updateFlag(creature, false);
         m_walkingCreatures.erase(it);
     }
 }
@@ -110,7 +100,7 @@ void Tile::addThing(const ThingPtr& thing, int stackPos)
         else
             m_effects.push_back(effect);
 
-        analyzeThing(thing, true);
+        updateFlag(thing, true);
 
         thing->setPosition(m_position);
         thing->onAppear();
@@ -153,7 +143,7 @@ void Tile::addThing(const ThingPtr& thing, int stackPos)
 
     m_things.insert(m_things.begin() + stackPos, thing);
 
-    analyzeThing(thing, true);
+    updateFlag(thing, true);
     if(checkForDetachableThing() && m_highlight.enabled) {
         select();
     }
@@ -163,9 +153,6 @@ void Tile::addThing(const ThingPtr& thing, int stackPos)
 
     thing->setPosition(m_position);
     thing->onAppear();
-
-    if(thing->isTranslucent())
-        checkTranslucentLight();
 
     g_map.notificateTileUpdate(thing->getPosition());
 }
@@ -181,7 +168,7 @@ bool Tile::removeThing(const ThingPtr thing)
         if(it == m_effects.end())
             return false;
 
-        analyzeThing(thing, false);
+        updateFlag(thing, false);
 
         m_effects.erase(it);
         return true;
@@ -191,16 +178,13 @@ bool Tile::removeThing(const ThingPtr thing)
     if(it == m_things.end())
         return false;
 
-    analyzeThing(thing, false);
+    updateFlag(thing, false);
 
     m_things.erase(it);
 
-    checkForDetachableThing();
+    if(checkForDetachableThing()) unselect();
 
     thing->onDisappear();
-
-    if(thing->isTranslucent())
-        checkTranslucentLight();
 
     g_map.notificateTileUpdate(thing->getPosition());
 
@@ -215,7 +199,7 @@ ThingPtr Tile::getThing(int stackPos)
     return nullptr;
 }
 
-std::vector<CreaturePtr> Tile::getCreatures()
+const std::vector<CreaturePtr> Tile::getCreatures()
 {
     std::vector<CreaturePtr> creatures;
     if(hasCreature()) {
@@ -228,18 +212,13 @@ std::vector<CreaturePtr> Tile::getCreatures()
     return creatures;
 }
 
-int Tile::getThingStackPos(const ThingPtr& thing)
+int8 Tile::getThingStackPos(const ThingPtr& thing)
 {
     for(int stackpos = -1, s = m_things.size(); ++stackpos < s;) {
         if(thing == m_things[stackpos]) return stackpos;
     }
 
     return -1;
-}
-
-bool Tile::hasThing(const ThingPtr& thing)
-{
-    return std::find(m_things.begin(), m_things.end(), thing) != m_things.end();
 }
 
 ThingPtr Tile::getTopThing()
@@ -286,7 +265,7 @@ EffectPtr Tile::getEffect(uint16 id)
     return nullptr;
 }
 
-int Tile::getGroundSpeed()
+uint16 Tile::getGroundSpeed()
 {
     if(const ItemPtr& ground = getGround())
         return ground->getGroundSpeed();
@@ -433,7 +412,7 @@ ThingPtr Tile::getTopMultiUseThing()
 
 bool Tile::isWalkable(bool ignoreCreatures)
 {
-    if(m_countFlag.notWalkable > 0 || !getGround()) {
+    if(m_countFlag.notWalkable || !getGround()) {
         return false;
     }
 
@@ -448,41 +427,6 @@ bool Tile::isWalkable(bool ignoreCreatures)
     }
 
     return true;
-}
-
-bool Tile::isPathable()
-{
-    return m_countFlag.notPathable == 0;
-}
-
-bool Tile::isFullGround()
-{
-    return m_countFlag.fullGround > 0;
-}
-
-bool Tile::isFullyOpaque()
-{
-    return isFullGround() || m_countFlag.opaque > 0;
-}
-
-bool Tile::isSingleDimension()
-{
-    return m_countFlag.notSingleDimension == 0 && m_walkingCreatures.empty();
-}
-
-bool Tile::hasTallThings()
-{
-    return m_countFlag.hasTallThings > 0;
-}
-
-bool Tile::hasWideThings()
-{
-    return m_countFlag.hasWideThings > 0;
-}
-
-bool Tile::isLookPossible()
-{
-    return m_countFlag.blockProjectile == 0;
 }
 
 bool Tile::isClickable()
@@ -506,78 +450,11 @@ bool Tile::isClickable()
     return false;
 }
 
-bool Tile::isEmpty()
-{
-    return m_things.empty();
-}
-
-bool Tile::canErase()
-{
-    return m_walkingCreatures.empty() && m_effects.empty() && isEmpty() && m_flags == 0 && m_minimapColor == 0;
-}
-
-bool Tile::isDrawable()
-{
-    return !isEmpty() || !m_walkingCreatures.empty() || !m_effects.empty();
-}
-
-bool Tile::mustHookEast()
-{
-    return m_countFlag.hasHookEast > 0;
-}
-
-bool Tile::mustHookSouth()
-{
-    return m_countFlag.hasHookSouth > 0;
-}
-
-bool Tile::hasCreature()
-{
-    return m_countFlag.hasCreature > 0;
-}
-
 bool Tile::limitsFloorsView(bool isFreeView)
 {
     // ground and walls limits the view
     const ThingPtr& firstThing = getThing(0);
     return firstThing && (firstThing->isGround() || (isFreeView ? firstThing->isOnBottom() && firstThing->blockProjectile() : firstThing->isOnBottom()));
-}
-
-int Tile::getElevation() const
-{
-    return m_countFlag.elevation;
-}
-
-bool Tile::hasElevation(int elevation)
-{
-    return m_countFlag.elevation >= elevation;
-}
-
-bool Tile::hasLight()
-{
-    return m_countFlag.hasLight > 0;
-}
-
-void Tile::checkTranslucentLight()
-{
-    if(m_position.z != Otc::SEA_FLOOR)
-        return;
-
-    Position downPos = m_position;
-    if(!downPos.down()) return;
-
-    TilePtr tile = g_map.getOrCreateTile(downPos);
-    if(!tile)
-        return;
-
-    for(const ThingPtr& thing : m_things) {
-        if(thing->isTranslucent() || thing->hasLensHelp()) {
-            tile->m_flags |= TILESTATE_TRANSLUECENT_LIGHT;
-            return;
-        }
-    }
-
-    tile->m_flags &= ~TILESTATE_TRANSLUECENT_LIGHT;
 }
 
 bool Tile::checkForDetachableThing()
@@ -618,11 +495,10 @@ bool Tile::checkForDetachableThing()
         }
     }
 
-    unselect();
     return false;
 }
 
-void Tile::analyzeThing(const ThingPtr& thing, bool add)
+void Tile::updateFlag(const ThingPtr& thing, bool add)
 {
     const int value = add ? 1 : -1;
 
@@ -655,6 +531,14 @@ void Tile::analyzeThing(const ThingPtr& thing, bool add)
 
         if(thing->isHookEast())
             m_countFlag.hasHookEast += value;
+    }
+
+    if(m_position.z == Otc::SEA_FLOOR && (thing->isTranslucent() || thing->hasLensHelp())) {
+        Position downPos = m_position;
+        if(downPos.down()) {
+            TilePtr tile = g_map.getOrCreateTile(downPos);
+            if(tile) m_countFlag.hasTransluecentLight += value;
+        }
     }
 
     // best option to have something more real, but in some cases as a custom project,
@@ -707,7 +591,12 @@ void Tile::select()
     m_highlight.invertedColorSelection = false;
     m_highlight.fadeLevel = HIGHTLIGHT_FADE_START;
     m_highlight.listeningEvent = g_dispatcher.cycleEvent([=]() {
-        m_highlight.update = true;
+        m_highlight.fadeLevel += 10 * (m_highlight.invertedColorSelection ? 1 : -1);
+        m_highlight.rgbColor = Color(static_cast<uint8>(255), static_cast<uint8>(255), static_cast<uint8>(0), m_highlight.fadeLevel);
+
+        if(m_highlight.invertedColorSelection ? m_highlight.fadeLevel > HIGHTLIGHT_FADE_END : m_highlight.fadeLevel < HIGHTLIGHT_FADE_START) {
+            m_highlight.invertedColorSelection = !m_highlight.invertedColorSelection;
+        }
     }, 40);
 }
 

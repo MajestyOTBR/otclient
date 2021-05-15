@@ -30,13 +30,12 @@
 #include <client/manager/thingtypemanager.h>
 
 struct Highlight {
-    int fadeLevel;
+    uint8 fadeLevel;
     Color rgbColor = Color::alpha;
     ThingPtr thing;
     ScheduledEventPtr listeningEvent;
-    stdext::boolean<false> enabled;
-    stdext::boolean<false> update;
-    stdext::boolean<false> invertedColorSelection;
+    stdext::boolean<false> enabled,
+        invertedColorSelection;
 };
 
 // @bindclass
