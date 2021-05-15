@@ -50,6 +50,8 @@ function ProtocolLogin:sendLoginPacket()
 
   msg:addU8(0)
 
+  local offset = msg:getMessageSize()
+
   -- first RSA byte must be 0
   msg:addU8(0)
 
@@ -70,7 +72,6 @@ function ProtocolLogin:sendLoginPacket()
     msg:addString(data)
   end
 
-  local offset = msg:getMessageSize()
   local paddingBytes = g_crypt.rsaGetSize() - (msg:getMessageSize() - offset)
   assert(paddingBytes >= 0)
   for i = 1, paddingBytes do

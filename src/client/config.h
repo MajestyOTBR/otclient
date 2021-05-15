@@ -20,14 +20,5 @@
  * THE SOFTWARE.
  */
 
-#ifndef CLIENT_GLOBAL_H
-#define CLIENT_GLOBAL_H
-
-#include <framework/global.h>
-
- // widely used headers
-#include <client/const.h>
-#include <client/config.h>
-#include <client/util/position.h>
-
-#endif
+#define HIGHTLIGHT_FADE_START 60
+#define HIGHTLIGHT_FADE_END 120

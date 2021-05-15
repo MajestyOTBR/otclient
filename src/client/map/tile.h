@@ -177,7 +177,7 @@ private:
         int hasGroundOrBorder = 0;
     };
 
-    void checkForDetachableThing();
+    bool checkForDetachableThing();
     void checkTranslucentLight();
 
     Position m_position;
