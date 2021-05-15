@@ -473,6 +473,7 @@
     <ClInclude Include="..\src\framework\xml\tinystr.h" />
     <ClInclude Include="..\src\framework\xml\tinyxml.h" />
     <ClInclude Include="..\src\client\painter\thingpainter.h" />
+    <ClInclude Include="..\src\client\config.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\otcicon.rc" />

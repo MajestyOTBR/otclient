@@ -40,7 +40,7 @@ void TilePainter::drawStart(const TilePtr& tile, const MapViewPtr& /*mapView*/)
         tile->m_highlight.update = false;
         tile->m_highlight.rgbColor = Color(255, 255, 0, tile->m_highlight.fadeLevel);
 
-        if(tile->m_highlight.invertedColorSelection ? tile->m_highlight.fadeLevel > 120 : tile->m_highlight.fadeLevel < 60) {
+        if(tile->m_highlight.invertedColorSelection ? tile->m_highlight.fadeLevel > HIGHTLIGHT_FADE_END : tile->m_highlight.fadeLevel < HIGHTLIGHT_FADE_START) {
             tile->m_highlight.invertedColorSelection = !tile->m_highlight.invertedColorSelection;
         }
     }
@@ -87,22 +87,6 @@ void TilePainter::drawGround(const TilePtr& tile, const Point& dest, float scale
 
 void TilePainter::drawCreature(const TilePtr& tile, const Point& dest, float scaleFactor, int frameFlags, LightView* lightView)
 {
-#if RENDER_CREATURE_BEHIND == 1
-    for(const auto& creature : m_walkingCreatures) {
-        drawThing(creature, Point(
-            dest.x + ((creature->getPosition().x - m_position.x) * Otc::TILE_PIXELS - m_drawElevation) * scaleFactor,
-            dest.y + ((creature->getPosition().y - m_position.y) * Otc::TILE_PIXELS - m_drawElevation) * scaleFactor
-        ), scaleFactor, true, frameFlags, lightView);
-    }
-
-    if(hasCreature()) {
-        for(auto it = m_creatures.rbegin(); it != m_creatures.rend(); ++it) {
-            const auto& creature = *it;
-            if(creature->isWalking()) continue;
-            drawThing(creature, dest - m_drawElevation * scaleFactor, scaleFactor, true, frameFlags, lightView);
-        }
-    }
-#else
     if(tile->hasCreature()) {
         for(const auto& thing : tile->m_things) {
             if(!thing->isCreature() || thing->static_self_cast<Creature>()->isWalking()) continue;
@@ -117,7 +101,6 @@ void TilePainter::drawCreature(const TilePtr& tile, const Point& dest, float sca
             dest.y + ((creature->getPosition().y - tile->m_position.y) * Otc::TILE_PIXELS - tile->m_drawElevation) * scaleFactor
         ), scaleFactor, true, frameFlags, lightView);
     }
-#endif
 }
 
 void TilePainter::drawBottom(const TilePtr& tile, const Point& dest, float scaleFactor, int frameFlags, LightView* lightView)

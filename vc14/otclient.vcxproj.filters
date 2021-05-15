@@ -1133,6 +1133,9 @@
     <ClInclude Include="..\src\client\protocol\protocolcodes.h">
       <Filter>Header Files\client\protocol</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\client\config.h">
+      <Filter>Header Files\client</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\otcicon.rc">

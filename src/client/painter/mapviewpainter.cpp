@@ -89,9 +89,6 @@ void MapViewPainter::draw(const MapViewPtr& mapView, const Rect& rect)
 
             mapView->onFloorDrawingStart(z);
 
-#if DRAW_ALL_GROUND_FIRST == 1
-            drawSeparately(z, viewPort, lightView);
-#else
             if(lightView) lightView->setFloor(z);
             for(const auto& tile : mapView->m_cachedVisibleTiles[z]) {
                 const auto hasLight = redrawLight && tile->hasLight();
@@ -102,7 +99,7 @@ void MapViewPainter::draw(const MapViewPtr& mapView, const Rect& rect)
                 TilePainter::draw(tile, mapView->transformPositionTo2D(tile->getPosition(), cameraPosition), mapView->m_scaleFactor, mapView->m_frameCache.flags, lightView);
                 TilePainter::drawEnd(tile, mapView);
             }
-#endif
+
             for(const MissilePtr& missile : g_map.getFloorMissiles(z)) {
                 ThingPainter::draw(missile, mapView->transformPositionTo2D(missile->getPosition(), cameraPosition), mapView->m_scaleFactor, mapView->m_frameCache.flags, lightView);
             }
@@ -126,9 +123,6 @@ void MapViewPainter::draw(const MapViewPtr& mapView, const Rect& rect)
             mapView->m_frameCache.tile->release();
         }
     }
-
-    // generating mipmaps each frame can be slow in older cards
-    //m_framebuffer->getTexture()->buildHardwareMipmaps();
 
     float fadeOpacity = 1.0f;
     if(!mapView->m_shaderSwitchDone && mapView->m_fadeOutTime > 0) {
@@ -165,19 +159,11 @@ void MapViewPainter::draw(const MapViewPtr& mapView, const Rect& rect)
     if(!cameraPosition.isValid())
         return;
 
-    // avoid drawing texts on map in far zoom outs
-#if DRAW_CREATURE_INFORMATION_AFTER_LIGHT == 0
     drawCreatureInformation(mapView);
-#endif
 
-    // lights are drawn after names and before texts
     if(mapView->m_drawLights) {
         mapView->m_lightView->draw(rect, mapView->m_rectCache.srcRect);
     }
-
-#if DRAW_CREATURE_INFORMATION_AFTER_LIGHT == 1
-    drawCreatureInformation();
-#endif
 
     drawText(mapView);
 
@@ -254,48 +240,6 @@ void MapViewPainter::drawText(const MapViewPtr& mapView)
         mapView->m_frameCache.dynamicText->draw();
     }
 }
-
-#if DRAW_ALL_GROUND_FIRST == 1
-void MapViewPainter::drawSeparately(const MapViewPtr& mapView, const uint8 floor, const ViewPort& viewPort, LightView* lightView)
-{
-    const Position cameraPosition = getCameraPosition();
-    const auto& tiles = m_cachedVisibleTiles[floor];
-    const auto redrawThing = m_frameCache.flags & Otc::FUpdateThing;
-    const auto redrawLight = m_drawLights && m_frameCache.flags & Otc::FUpdateLight;
-
-    for(const auto& tile : tiles) {
-        if(!tile->hasGroundToDraw()) continue;
-
-        const auto hasLight = redrawLight && tile->hasLight();
-
-        if(!redrawThing && !hasLight || !canRenderTile(tile, viewPort, lightView)) continue;
-
-        const Position& tilePos = tile->getPosition();
-        tile->drawStart(this);
-        tile->drawGround(transformPositionTo2D(tilePos, cameraPosition), m_scaleFactor, m_frameCache.flags, lightView);
-        tile->drawEnd(this);
-    }
-
-    for(const auto& tile : tiles) {
-        if(!tile->hasBottomToDraw() && !tile->hasTopToDraw()) continue;
-
-        const auto hasLight = redrawLight && tile->hasLight();
-
-        if(!redrawThing && !hasLight || !canRenderTile(tile, viewPort, lightView)) continue;
-
-        const Position& tilePos = tile->getPosition();
-
-        const Point pos2d = transformPositionTo2D(tilePos, cameraPosition);
-
-        if(!tile->hasGroundToDraw()) tile->drawStart(this);
-
-        tile->drawBottom(pos2d, m_scaleFactor, m_frameCache.flags, lightView);
-        tile->drawTop(pos2d, m_scaleFactor, m_frameCache.flags, lightView);
-
-        if(!tile->hasGroundToDraw()) tile->drawEnd(this);
-    }
-}
-#endif
 
 bool MapViewPainter::canRenderTile(const MapViewPtr& mapView, const TilePtr& tile, const AwareRange& viewPort, LightView* lightView)
 {
