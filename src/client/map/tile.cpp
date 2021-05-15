@@ -587,7 +587,7 @@ bool Tile::checkForDetachableThing()
 
     if(m_countFlag.hasCommonItem) {
         for(const auto& item : m_things) {
-            if((!item->isCommon() || !item->canDraw() || item->isCloth()) && (!item->isUsable()) && (!item->hasLight())) {
+            if((!item->isCommon() || !item->canDraw() || item->isIgnoreLook() || item->isCloth()) && (!item->isUsable()) && (!item->hasLight())) {
                 continue;
             }
 
@@ -599,7 +599,7 @@ bool Tile::checkForDetachableThing()
     if(m_countFlag.hasBottomItem) {
         for(auto it = m_things.rbegin(); it != m_things.rend(); ++it) {
             const auto& item = *it;
-            if(!item->isOnBottom() || !item->canDraw() || item->isFluidContainer()) continue;
+            if(!item->isOnBottom() || !item->canDraw() || item->isIgnoreLook() || item->isFluidContainer()) continue;
             m_highlight.thing = item;
             return true;
         }
@@ -609,7 +609,7 @@ bool Tile::checkForDetachableThing()
         for(auto it = m_things.rbegin(); it != m_things.rend(); ++it) {
             const auto& item = *it;
             if(!item->isOnTop()) break;
-            if(!item->canDraw()) continue;
+            if(!item->canDraw() || item->isIgnoreLook()) continue;
 
             if(item->hasLensHelp()) {
                 m_highlight.thing = item;

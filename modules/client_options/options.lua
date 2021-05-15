@@ -30,7 +30,7 @@ local defaultOptions = {
   dontStretchShrink = false,
   turnDelay = 50,
   hotkeyDelay = 70,
-  crosshair = 'full',
+  crosshair = 'default',
   enableHighlightMouseTarget = true,
   antialiasingMode = 1
 }
@@ -134,7 +134,7 @@ function setupComboBox()
 
   crosshairCombobox:addOption('Disabled', 'disabled')
   crosshairCombobox:addOption('Default', 'default')
-  crosshairCombobox:addOption('Full', 'full')
+  crosshairCombobox:addOption('Opened', 'opened')
 
   crosshairCombobox.onOptionChange = function(comboBox, option)
     setOption('crosshair', comboBox:getCurrentOption().data)
@@ -280,7 +280,7 @@ function setOption(key, value, force)
       newValue = nil
     end
 
-    gameMapPanel:setCrosshairEffect(newValue == 'full' and 57 or 0)
+    gameMapPanel:setCrosshairEffect(newValue == 'default' and 57 or 0)
     gameMapPanel:setCrosshairTexture(newValue and crossPath .. newValue or nil)
     crosshairCombobox:setCurrentOptionByData(newValue, true)
   elseif key == 'enableHighlightMouseTarget' then
